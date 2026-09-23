@@ -1,0 +1,217 @@
+/* SAHARA Application Tracking & Timeline Styles */
+
+.tracker-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sahara-space-6);
+}
+
+.tracker-card {
+  background: var(--sahara-surface);
+  border: 1px solid var(--sahara-surface-glass-border);
+  border-radius: var(--sahara-radius-lg);
+  padding: var(--sahara-space-6);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.tracker-case-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: var(--sahara-space-4);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.tracker-case-id {
+  font-family: monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--sahara-accent);
+  background: rgba(37, 99, 235, 0.1);
+  padding: 4px 12px;
+  border-radius: var(--sahara-radius-sm);
+}
+
+.tracker-badge-current {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--sahara-radius-full);
+  font-size: var(--sahara-font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.tracker-badge-current.under_verification {
+  background: rgba(249, 115, 22, 0.15);
+  color: #c2410c;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.tracker-badge-current.submitted {
+  background: rgba(234, 179, 8, 0.15);
+  color: #a16207;
+}
+
+.tracker-badge-current.approved {
+  background: rgba(34, 197, 94, 0.15);
+  color: #15803d;
+}
+
+/* Timeline steps */
+.timeline-stepper {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  margin: var(--sahara-space-6) 0 var(--sahara-space-4);
+  padding-left: 28px;
+}
+
+.timeline-stepper::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  bottom: 14px;
+  left: 9px;
+  width: 2px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.timeline-step {
+  position: relative;
+  padding-bottom: var(--sahara-space-6);
+}
+
+.timeline-step:last-child {
+  padding-bottom: 0;
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -28px;
+  top: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--sahara-surface);
+  border: 2px solid var(--sahara-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.timeline-step.completed .timeline-dot {
+  background: #22c55e;
+  border-color: #22c55e;
+}
+
+.timeline-step.active .timeline-dot {
+  background: #f97316;
+  border-color: #f97316;
+  box-shadow: 0 0 12px rgba(249, 115, 22, 0.5);
+  animation: pulseDot 1.4s infinite alternate;
+}
+
+.timeline-step-title {
+  font-weight: 600;
+  font-size: var(--sahara-font-size-sm);
+  color: var(--sahara-text-primary);
+}
+
+.timeline-step-meta {
+  font-size: var(--sahara-font-size-xs);
+  color: var(--sahara-text-muted);
+  margin-top: 2px;
+}
+
+/* Delay & Published Timeline Warning Alert */
+.delay-warning-card {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-left: 4px solid #ef4444;
+  border-radius: 0 var(--sahara-radius-md) var(--sahara-radius-md) 0;
+  padding: var(--sahara-space-4);
+  margin-top: var(--sahara-space-4);
+}
+
+.delay-warning-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--sahara-font-size-base);
+  font-weight: 700;
+  color: #dc2626;
+}
+
+.delay-warning-desc {
+  font-size: var(--sahara-font-size-sm);
+  color: var(--sahara-text-secondary);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+/* Official Escalation / Grievance Route */
+.grievance-escalation-box {
+  background: var(--sahara-surface);
+  border: 1px solid var(--sahara-surface-glass-border);
+  border-radius: var(--sahara-radius-md);
+  padding: var(--sahara-space-4);
+  margin-top: var(--sahara-space-4);
+}
+
+.grievance-heading {
+  font-size: var(--sahara-font-size-sm);
+  font-weight: 700;
+  color: var(--sahara-text-primary);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.grievance-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.grievance-option-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--sahara-surface-elevated);
+  padding: 10px 14px;
+  border-radius: var(--sahara-radius-sm);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.grievance-name {
+  font-size: var(--sahara-font-size-xs);
+  font-weight: 600;
+  color: var(--sahara-text-primary);
+}
+
+.grievance-detail {
+  font-size: 11px;
+  color: var(--sahara-text-muted);
+}
+
+.grievance-link-btn {
+  font-size: var(--sahara-font-size-xs);
+  color: var(--sahara-accent);
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.grievance-link-btn:hover {
+  text-decoration: underline;
+}

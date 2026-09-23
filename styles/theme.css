@@ -1,0 +1,44 @@
+/**
+ * SAHARA Design System & Global Theme Tokens
+ * Minimalist Clean White Architecture & Bold Quicksand Typography
+ */
+
+:root {
+  /* Backgrounds */
+  --sahara-bg: #f7f7f7;
+  --sahara-bg-secondary: #f0f0f0;
+  --sahara-surface: #ffffff;
+  --sahara-surface-elevated: #eeeeee;
+  --sahara-surface-glass: rgba(247, 247, 247, 0.95);
+  --sahara-surface-glass-border: rgba(0, 0, 0, 0.1);
+
+  /* Brand & Accent */
+  --sahara-accent: #2563eb;
+  --sahara-accent-hover: #1d4ed8;
+  --sahara-accent-glow: rgba(37, 99, 235, 0.18);
+  --sahara-gold-accent: #d97706;
+
+  /* Typography Colors */
+  --sahara-text-primary: #000000;
+  --sahara-text-secondary: #3f3f46;
+  --sahara-text-muted: #71717a;
+
+  /* Fonts */
+  --sahara-font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --sahara-font-display: 'Quicksand', var(--sahara-font-family);
+
+  /* Corner Logo Position Tokens */
+  --sahara-corner-logo-top: 28px;
+  --sahara-corner-logo-left: 36px;
+
+  /* Sizing & Radius */
+  --sahara-radius-sm: 8px;
+  --sahara-radius-md: 14px;
+  --sahara-radius-lg: 20px;
+  --sahara-radius-xl: 32px;
+  --sahara-radius-full: 9999px;
+
+  /* Transitions */
+  --sahara-anim-duration: 0.5s;
+  --sahara-transition-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+}
