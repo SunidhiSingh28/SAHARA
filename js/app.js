@@ -65,7 +65,7 @@ class SaharaApp {
         - English SAHARA glides up to corner:
           - Full uploaded colored logo appears beside it
           - Brand text alternates slowly between English & Hindi
-        - Faded rotating chakra appears behind search bar
+        - Faded rotating chakra appears centered behind search bar
      ========================================================================= */
   initIntroScreen() {
     const brandContainer = document.getElementById('sahara-brand-container');
