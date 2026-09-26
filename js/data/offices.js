@@ -98,5 +98,82 @@ export const OFFICES_DATA = {
     ],
     officialWebsite: 'https://aaplesarkar.mahaonline.gov.in',
     mapsQuery: 'Tehsildar Office Bandra Mumbai Suburban'
+  },
+  'pan-card': {
+    officeName: 'Protean TIN-FC / UTIITSL PAN Service Center',
+    department: 'Income Tax Department / Facilitation Center',
+    address: 'Income Tax Office Building / Nearest Authorized NSDL TIN-FC Center',
+    timings: 'Monday to Friday: 9:30 AM - 5:30 PM',
+    helpline: '1800 180 1961 (Income Tax Toll-Free)',
+    appointmentRequired: false,
+    documentsToCarry: [
+      'Original Aadhaar Card',
+      '2 Passport size photographs',
+      'Filled Form 49A'
+    ],
+    officialWebsite: 'https://www.incometax.gov.in',
+    mapsQuery: 'NSDL TIN Facilitation Center Mumbai'
+  },
+  'ration-card': {
+    officeName: 'District Food and Civil Supplies Office / Rationing Office',
+    department: 'Food, Civil Supplies and Consumer Protection Department',
+    address: 'Zonal Rationing Office / Tehsil Food Supply Section',
+    timings: 'Monday to Friday: 10:00 AM - 4:30 PM',
+    helpline: '1967 / 1800 22 4950 (NFSA Toll-Free)',
+    appointmentRequired: false,
+    documentsToCarry: [
+      'Aadhaar cards of all family members',
+      'Address proof (Electricity bill / LPG connection slip)',
+      'Income certificate of head of household',
+      'Surrender / Deletion certificate (if migrating)'
+    ],
+    officialWebsite: 'https://mahafood.gov.in',
+    mapsQuery: 'Rationing Office Mumbai'
+  },
+  'income-certificate': {
+    officeName: 'Tehsildar Office / Setu Suvidha Kendra / MahaOnline Center',
+    department: 'Revenue & District Administration',
+    address: 'Taluka Tehsildar Office / Citizen Service Center (CSC)',
+    timings: 'Monday to Friday: 10:00 AM - 5:00 PM',
+    helpline: '1800 120 8040 (Aaple Sarkar Helpline)',
+    appointmentRequired: false,
+    documentsToCarry: [
+      'Salary slip / Form 16 / Income declaration affidavit',
+      'Aadhaar Card and Ration Card',
+      'Bank statement (last 6 months)'
+    ],
+    officialWebsite: 'https://aaplesarkar.mahaonline.gov.in',
+    mapsQuery: 'Tehsildar Office Citizen Facilitation Center'
+  },
+  'caste-certificate': {
+    officeName: 'Sub-Divisional Officer (SDO) / Tehsildar Office',
+    department: 'Social Justice & Revenue Department',
+    address: 'Sub-Divisional Magistrate (SDM) / Revenue Division Office',
+    timings: 'Monday to Friday: 10:00 AM - 5:00 PM',
+    helpline: '1800 120 8040 (State Citizen Call Centre)',
+    appointmentRequired: false,
+    documentsToCarry: [
+      'Primary school leaving certificate showing caste/sub-caste',
+      'Father / Grandfather school leaving certificate / genealogical records',
+      'Aadhaar card and residential proof',
+      'Affidavit of caste lineage'
+    ],
+    officialWebsite: 'https://aaplesarkar.mahaonline.gov.in',
+    mapsQuery: 'Sub Divisional Officer Revenue Office'
+  },
+  'msme-udyam': {
+    officeName: 'District Industries Centre (DIC) / MSME Development Institute',
+    department: 'Ministry of Micro, Small and Medium Enterprises (MSME)',
+    address: 'District Industries Centre (DIC) / MSME-DI, Saki Naka, Kurla Andheri Road, Mumbai 400072',
+    timings: 'Monday to Friday: 9:30 AM - 5:30 PM',
+    helpline: '011 2306 1500 (MSME Helpdesk)',
+    appointmentRequired: false,
+    documentsToCarry: [
+      'Aadhaar card of enterprise owner',
+      'PAN card of business or proprietor',
+      'Bank passbook / cancelled cheque showing account number & IFSC'
+    ],
+    officialWebsite: 'https://udyamregistration.gov.in',
+    mapsQuery: 'District Industries Centre Mumbai'
   }
 };

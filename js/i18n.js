@@ -53,7 +53,7 @@ const TRANSLATIONS = {
     available: 'Available in Vault',
     missing: 'Missing — Needs Preparation',
     demoBanner: 'DEMO ONLY — This example uses fictional information and must not be submitted as an actual application.',
-    tutorialTitle: 'How to Do This',
+    tutorialTitle: 'How to Do This (Step-by-Step Instructions)',
     finalChecklist: 'Verification & Final Checklist',
     downloadChecklist: 'Download Complete Checklist',
     officialSource: 'Official Source',
@@ -62,9 +62,30 @@ const TRANSLATIONS = {
     officialGrievanceRoutes: 'Official Escalation & Grievance Routes',
     whatSaharaUnderstood: 'What Sahara Understood',
     eligibilityTitle: 'Eligibility Criteria',
-    kitIntroAudio: 'Here is your application kit for {name}.',
+    eligibilitySub: 'You may be eligible based on the information provided:',
+    verificationRequirements: 'Verification & Official Approval Requirements',
+    signatureRequired: 'Signature Required',
+    physicalVisitRequired: 'Physical Visit Required',
+    onlineAvailable: '100% Online Available',
+    officialVerification: 'Official Verification',
+    officialForms: 'Official Forms & Printouts',
+    officialFormsSub: 'Official printable application forms sourced directly from official government portals:',
+    downloadOfficialForm: 'Download Official Form from Official Website',
+    officialPrintout: 'Official Printout',
+    filledDemoTitle: 'Filled-Form Demonstration',
+    whereToApply: 'Where to Apply',
+    checklistTitle: 'Are You Ready? (Checklist)',
+    applicability: 'Applicability',
+    processing: 'Processing',
+    officialPortalLabel: 'Official Portal',
+    kitIntroAudio: 'Here is your application kit for {name}. Issued by {authority}. Processing timeline is {timeline}. Required documents are: {docs}.',
     understandingService: 'What Sahara understood: You are looking to apply for {name}.',
-    understandingScheme: 'What Sahara understood: You are looking for relevant welfare schemes.'
+    understandingScheme: 'What Sahara understood: You are looking for relevant welfare schemes.',
+    vaultSpeaker: 'My Documents Vault. Sahara securely tracks your uploaded government proofs such as Aadhaar, PAN, and Voter ID, and highlights citizen services you can apply for immediately.',
+    lifeEventsSpeaker: 'What are you trying to do? Browse citizen life situations such as baby born, turned 18, retired, starting a business, or lost documents to get customized step-by-step guidance.',
+    servicesSpeaker: 'Services you might be looking for. Browse official government certificates, welfare schemes, pensions, driving licences, and business registrations.',
+    trackerSpeaker: 'Application Status and Delay Tracker. Track any application reference number across central and state portals, check guaranteed delivery days under Citizen Charters, and file statutory delay complaints.',
+    didYouMeanSpeaker: 'Did you mean one of these services?'
   },
   hi: {
     heroTitle: 'आप क्या करना चाहते हैं?',
@@ -96,7 +117,7 @@ const TRANSLATIONS = {
     available: 'वॉल्ट में उपलब्ध',
     missing: 'अनुपलब्ध — तैयार करें',
     demoBanner: 'केवल डेमो — यह उदाहरण काल्पनिक जानकारी पर आधारित है। इसे वास्तविक आवेदन के रूप में प्रस्तुत न करें।',
-    tutorialTitle: 'यह प्रक्रिया कैसे पूरी करें',
+    tutorialTitle: 'यह प्रक्रिया कैसे पूरी करें (चरण-दर-चरण निर्देश)',
     finalChecklist: 'सत्यापन और अंतिम चेकलिस्ट',
     downloadChecklist: 'पूरी चेकलिस्ट डाउनलोड करें',
     officialSource: 'आधिकारिक स्रोत',
@@ -105,9 +126,30 @@ const TRANSLATIONS = {
     officialGrievanceRoutes: 'आधिकारिक शिकायत एवं निवारण माध्यम',
     whatSaharaUnderstood: 'सहारा की समझ',
     eligibilityTitle: 'पात्रता मानदंड',
-    kitIntroAudio: '{name} के लिए आपका आवेदन किट यहाँ तैयार है।',
+    eligibilitySub: 'प्रदान की गई जानकारी के आधार पर आपकी संभावित पात्रता:',
+    verificationRequirements: 'सत्यापन एवं आधिकारिक स्वीकृति आवश्यकताएं',
+    signatureRequired: 'हस्ताक्षर आवश्यक',
+    physicalVisitRequired: 'भौतिक उपस्थिति आवश्यक',
+    onlineAvailable: '100% ऑनलाइन उपलब्ध',
+    officialVerification: 'शासकीय सत्यापन',
+    officialForms: 'आधिकारिक फॉर्म एवं प्रिंटआउट',
+    officialFormsSub: 'आधिकारिक सरकारी पोर्टलों से सीधे प्राप्त किए गए प्रिंट करने योग्य आवेदन फॉर्म:',
+    downloadOfficialForm: 'आधिकारिक वेबसाइट से फॉर्म डाउनलोड करें',
+    officialPrintout: 'आधिकारिक प्रिंटआउट',
+    filledDemoTitle: 'भरा हुआ फॉर्म प्रात्यक्षिक',
+    whereToApply: 'आवेदन कहाँ करें',
+    checklistTitle: 'क्या आप तैयार हैं? (चेकलिस्ट)',
+    applicability: 'लागू सीमा',
+    processing: 'प्रक्रिया समय',
+    officialPortalLabel: 'आधिकारिक पोर्टल',
+    kitIntroAudio: '{name} के लिए आपका आवेदन किट यहाँ तैयार है। जारीकर्ता: {authority}। प्रक्रिया समय: {timeline}। आवश्यक दस्तावेज़: {docs}।',
     understandingService: 'सहारा की समझ: आप {name} के लिए आवेदन करना चाहते हैं।',
-    understandingScheme: 'सहारा की समझ: आप प्रासंगिक सरकारी कल्याणकारी योजनाओं की खोज कर रहे हैं।'
+    understandingScheme: 'सहारा की समझ: आप प्रासंगिक सरकारी कल्याणकारी योजनाओं की खोज कर रहे हैं।',
+    vaultSpeaker: 'माई डॉक्यूमेंट्स वॉल्ट। सहारा आपके आधार, पैन और वोटर आईडी जैसे सरकारी प्रमाणों को सुरक्षित रूप से ट्रैक करता है और उन सेवाओं को दिखाता है जिनके लिए आप तुरंत आवेदन कर सकते हैं।',
+    lifeEventsSpeaker: 'आप क्या करना चाहते हैं? बच्चे का जन्म, 18 वर्ष की आयु, सेवानिवृत्ति, नया व्यवसाय या खोए हुए दस्तावेज़ जैसी स्थितियों के लिए चरण-दर-चरण मार्गदर्शन प्राप्त करें।',
+    servicesSpeaker: 'सेवाएं जिनकी आपको आवश्यकता हो सकती है। आधिकारिक सरकारी प्रमाण पत्र, कल्याणकारी योजनाएं, पेंशन, ड्राइविंग लाइसेंस और व्यावसायिक पंजीकरण देखें।',
+    trackerSpeaker: 'आवेदन स्थिति और विलंब ट्रैकर। केंद्र और राज्य पोर्टलों पर आवेदन क्रमांक ट्रैक करें, नागरिक चार्टर के तहत गारंटीकृत डिलीवरी दिनों की जांच करें और शिकायत दर्ज करें।',
+    didYouMeanSpeaker: 'क्या आपका तात्पर्य इनमें से किसी सेवा से है?'
   },
   mr: {
     heroTitle: 'तुम्हाला काय करायचे आहे?',
@@ -139,18 +181,39 @@ const TRANSLATIONS = {
     available: 'उपलब्ध',
     missing: 'अपूर्ण — आवश्यक',
     demoBanner: 'केवळ प्रात्यक्षिकासाठी — हे उदाहरण काल्पनिक आहे. प्रत्यक्ष अर्जासाठी वापरू नये.',
-    tutorialTitle: 'अर्ज कसा करावा',
-    finalChecklist: 'अंतिम चेकलिस्ट',
-    downloadChecklist: 'चेकलिस्ट डाउनलोड करा',
+    tutorialTitle: 'अर्ज कसा करावा (सविस्तर पायऱ्या)',
+    finalChecklist: 'पडताळणी आणि अंतिम चेकलिस्ट',
+    downloadChecklist: 'संपूर्ण चेकलिस्ट डाउनलोड करा',
     officialSource: 'अधिकृत स्रोत',
     lastVerified: 'शेवटची पडताळणी',
     beyondTimelineWarning: 'हा अर्ज अधिकृत दिलेल्या कालावधीपेक्षा जास्त प्रलंबित असू शकतो.',
     officialGrievanceRoutes: 'अधिकृत तक्रार निवारण मार्ग',
     whatSaharaUnderstood: 'सहाराचे आकलन',
     eligibilityTitle: 'पात्रता निकष',
-    kitIntroAudio: '{name} साठी तुमचा अर्ज किट येथे तयार आहे.',
+    eligibilitySub: 'दिलेल्या माहितीच्या आधारे तुमची संभाव्य पात्रता:',
+    verificationRequirements: 'पडताळणी आणि अधिकृत मंजुरी आवश्यकता',
+    signatureRequired: 'स्वाक्षरी आवश्यक',
+    physicalVisitRequired: 'प्रत्यक्ष उपस्थिती आवश्यक',
+    onlineAvailable: '१००% ऑनलाईन उपलब्ध',
+    officialVerification: 'शासकीय पडताळणी',
+    officialForms: 'अधिकृत अर्ज आणि छापील फॉर्म',
+    officialFormsSub: 'अधिकृत शासकीय संकेतस्थळांवरून थेट उपलब्ध केलेले छापील अर्ज फॉर्म:',
+    downloadOfficialForm: 'अधिकृत संकेतस्थळावरून अर्ज डाउनलोड करा',
+    officialPrintout: 'अधिकृत प्रिंट',
+    filledDemoTitle: 'भरलेला नमुना अर्ज प्रात्यक्षिक',
+    whereToApply: 'अर्ज कुठे करावा',
+    checklistTitle: 'तुम्ही तयार आहात का? (चेकलिस्ट)',
+    applicability: 'लागू कक्षा',
+    processing: 'कालावधी',
+    officialPortalLabel: 'अधिकृत पोर्टल',
+    kitIntroAudio: '{name} साठी तुमचा अर्ज किट येथे तयार आहे. जारीकर्ता: {authority}. कालावधी: {timeline}. आवश्यक कागदपत्रे: {docs}.',
     understandingService: 'सहाराचे आकलन: तुम्ही {name} साठी अर्ज करू इच्छिता.',
-    understandingScheme: 'सहाराचे आकलन: तुम्ही संबंधित सरकारी कल्याणकारी योजना शोधत आहात.'
+    understandingScheme: 'सहाराचे आकलन: तुम्ही संबंधित सरकारी कल्याणकारी योजना शोधत आहात.',
+    vaultSpeaker: 'माझी कागदपत्रे तिजोरी. सहारा तुमची आधार, पॅन आणि मतदान ओळखपत्र यांसारखी शासकीय कागदपत्रे सुरक्षित ठेवते आणि तुम्ही तात्काळ अर्ज करू शकणाऱ्या सेवा दर्शवते.',
+    lifeEventsSpeaker: 'तुम्ही काय करू इच्छिता? बाळाचा जन्म, १८ वर्षे पूर्ण, सेवानिवृत्ती, नवीन व्यवसाय किंवा कागदपत्रे गहाळ होणे यांसारख्या जीवन प्रसंगांसाठी सविस्तर मार्गदर्शन मिळवा.',
+    servicesSpeaker: 'तुम्हाला आवश्यक असणाऱ्या सेवा. अधिकृत शासकीय प्रमाणपत्रे, कल्याणकारी योजना, पेन्शन, ड्रायव्हिंग लायसन्स आणि व्यवसाय नोंदणी पहा.',
+    trackerSpeaker: 'अर्ज स्थिती आणि विलंब ट्रॅकर. केंद्र व राज्य संकेतस्थळांवरील अर्जाचा संदर्भ क्रमांक ट्रॅक करा, सेवा हमी कायद्यांतर्गत कालावधी तपासा आणि तक्रार दाखल करा.',
+    didYouMeanSpeaker: 'तुमचा यापैकी कोणत्याही सेवेशी संदर्भ आहे का?'
   },
   bn: {
     heroTitle: 'আপনি কী করতে চান?',
@@ -230,7 +293,7 @@ const TRANSLATIONS = {
   }
 };
 
-let currentLangCode = localStorage.getItem(SAHARA_CONFIG.storageKeys.language) || 'en';
+let currentLangCode = sessionStorage.getItem('sahara_lang') || localStorage.getItem(SAHARA_CONFIG.storageKeys.language) || 'en';
 
 export const i18n = {
   getCurrentLanguage() {
@@ -245,6 +308,8 @@ export const i18n = {
     if (LANGUAGES.some(l => l.code === code)) {
       currentLangCode = code;
       localStorage.setItem(SAHARA_CONFIG.storageKeys.language, code);
+      sessionStorage.setItem('sahara_lang', code);
+      sessionStorage.setItem('sahara_user_selected_lang', code);
       document.documentElement.lang = code;
       return true;
     }
@@ -268,6 +333,7 @@ export const i18n = {
     if (!item) return '';
     const localizedKey = `${field}_${currentLangCode}`;
     if (item[localizedKey]) return item[localizedKey];
+    if (currentLangCode === 'mr' && item[`${field}_hi`]) return item[`${field}_hi`];
     return item[field] || '';
   },
 

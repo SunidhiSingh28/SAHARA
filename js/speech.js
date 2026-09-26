@@ -15,6 +15,11 @@ export class SaharaSpeech {
     this.lastSpokenText = '';
 
     this.initRecognition();
+    if (this.synthesis && this.synthesis.onvoiceschanged !== undefined) {
+      this.synthesis.onvoiceschanged = () => {
+        try { this.synthesis.getVoices(); } catch (e) {}
+      };
+    }
   }
 
   initRecognition() {
@@ -85,7 +90,7 @@ export class SaharaSpeech {
 
     try {
       const currentLang = i18n.getCurrentLanguageObj();
-      this.recognition.lang = currentLang.voiceLang || 'en-IN';
+      this.recognition.lang = currentLang.voiceLang || (currentLang.code === 'mr' ? 'mr-IN' : currentLang.code === 'hi' ? 'hi-IN' : 'en-IN');
       this.recognition.start();
       return true;
     } catch (err) {
@@ -111,12 +116,28 @@ export class SaharaSpeech {
     try {
       const utterance = new SpeechSynthesisUtterance(text);
       const currentLang = i18n.getCurrentLanguageObj();
-      utterance.lang = currentLang.voiceLang || 'en-IN';
+      const targetVoiceLang = currentLang.voiceLang || (currentLang.code === 'mr' ? 'mr-IN' : currentLang.code === 'hi' ? 'hi-IN' : 'en-IN');
+      utterance.lang = targetVoiceLang;
       utterance.rate = 0.95; // Clear and accessible pace
 
-      // Try selecting an Indian voice if present
-      const voices = this.synthesis.getVoices();
-      const matchVoice = voices.find(v => v.lang.includes('IN') || v.lang.startsWith(currentLang.code));
+      // Prioritize exact language match so Marathi and Hindi never default to English voice
+      const voices = this.synthesis.getVoices() || [];
+      const targetCode = (currentLang.code || 'en').toLowerCase();
+      const targetTag = targetVoiceLang.toLowerCase().replace('_', '-');
+
+      // 1. Exact match for voice tag (e.g. mr-in, hi-in)
+      let matchVoice = voices.find(v => v.lang && v.lang.toLowerCase().replace('_', '-') === targetTag);
+
+      // 2. Prefix match for language code (e.g. mr, hi)
+      if (!matchVoice) {
+        matchVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith(targetCode));
+      }
+
+      // 3. ONLY if target language is English, allow Indian English or generic English voice
+      if (!matchVoice && targetCode === 'en') {
+        matchVoice = voices.find(v => v.lang && (v.lang.toLowerCase().includes('in') || v.lang.toLowerCase().startsWith('en')));
+      }
+
       if (matchVoice) {
         utterance.voice = matchVoice;
       }

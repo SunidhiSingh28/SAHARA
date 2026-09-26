@@ -28,42 +28,70 @@ export class NlpMatcher {
     const cleaned = text.trim().toLowerCase();
     const context = this.extractContext(cleaned);
 
-    // 1. Direct High-Priority Fast-Paths for Aadhaar and License queries
-    const aadharDirectTerms = ['aadhar', 'aadhaar', 'adhar', 'uidai', 'eaadhaar', 'aadhar card', 'aadhaar card', 'adhar card', 'आधार', 'आधार कार्ड', 'uid'];
-    const isAadharDirect = aadharDirectTerms.some(t => cleaned === t || cleaned.includes('aadhar') || cleaned.includes('aadhaar') || cleaned.includes('adhar') || cleaned.includes('आधार') || cleaned.includes('uidai'));
-    if (isAadharDirect) {
-      const aadharService = this.services.find(s => s.id === 'aadhaar-card');
-      if (aadharService) {
-        return {
-          rawQuery: text,
-          extractedContext: context,
-          lifeEvent: matchedLifeEvent,
-          topService: aadharService,
-          matchedServices: [aadharService, ...this.services.filter(s => s.id !== 'aadhaar-card').slice(0, 2)],
-          matchedSchemes: [],
-          confidence: 100,
-          isAmbiguous: false,
-          didYouMean: []
-        };
+    // 1. Strict Primary Service Matchers (Precedence over generic queries)
+    const PRIMARY_SERVICE_PATTERNS = [
+      {
+        id: 'aadhaar-card',
+        regex: /(?:\baadhaar\b|\baadhar\b|\badhar\b|\buidai\b|\beaadhaar\b|\be-aadhaar\b|\bmyaadhaar\b|आधार)/i
+      },
+      {
+        id: 'passport-service',
+        regex: /(?:\bpassport\b|\bpassports\b|\btravel abroad\b|\bforeign travel\b|\bvisa\b|\bpsk\b|\btatkaal\b|पासपोर्ट|पारपत्र)/i
+      },
+      {
+        id: 'voter-id',
+        regex: /(?:\bvoter\b|\belection card\b|\bepic\b|\bvoter id\b|\bmatdan\b|\bmatdata\b|मतदान|मतदाता|वोटर)/i
+      },
+      {
+        id: 'pan-card',
+        regex: /(?:\bpan card\b|\bpan\b|\bnsdl\b|\butiitsl\b|\bincome tax pan\b|पॅन|पैन)/i
+      },
+      {
+        id: 'driving-licence',
+        regex: /(?:\bdriving\b|\blicence\b|\blicense\b|\bdl\b|\blearner licence\b|\blearner license\b|\bdriver licence\b|\bdriver license\b|\bsarathi\b|\bparivahan\b|वाहन चालक|लाइसेंस|ड्राइविंग)/i
+      },
+      {
+        id: 'birth-certificate',
+        regex: /(?:\bbirth certificate\b|\bbirth\b|\bnewborn\b|\bbaby birth\b|जन्म दाखला|जन्म प्रमाणपत्र|जन्म प्रमाण पत्र)/i
+      },
+      {
+        id: 'ration-card',
+        regex: /(?:\bration card\b|\bration\b|\bnfsa\b|\brashan\b|राशन कार्ड|रेशन कार्ड|राशन|रेशन)/i
+      },
+      {
+        id: 'domicile-certificate',
+        regex: /(?:\bdomicile\b|\bresidence certificate\b|\bnivas\b|निवास प्रमाण पत्र|अधिवास|रहिवासी दाखला)/i
+      },
+      {
+        id: 'income-certificate',
+        regex: /(?:\bincome certificate\b|\bincome\b|\butpanna\b|आय प्रमाण पत्र|उत्पन्नाचा दाखला|उत्पन्न)/i
+      },
+      {
+        id: 'caste-certificate',
+        regex: /(?:\bcaste certificate\b|\bcaste\b|जाति प्रमाण पत्र|जातीचा दाखला|जात प्रमाणपत्र)/i
+      },
+      {
+        id: 'msme-udyam',
+        regex: /(?:\bmsme\b|\budyam\b|\budyog\b|\bbusiness registration\b|उद्योग आधार|उद्यम|उद्योग)/i
       }
-    }
+    ];
 
-    const licenseDirectTerms = ['license', 'licence', 'driving license', 'driving licence', 'driver license', 'driving', 'dl', 'learner license', 'learner licence', 'लाइसेंस', 'ड्राइविंग लाइसेंस'];
-    const isLicenseDirect = licenseDirectTerms.some(t => cleaned === t || cleaned.includes('license') || cleaned.includes('licence') || cleaned.includes('driving') || cleaned.includes('लाइसेंस') || cleaned === 'dl');
-    if (isLicenseDirect) {
-      const dlService = this.services.find(s => s.id === 'driving-licence');
-      if (dlService) {
-        return {
-          rawQuery: text,
-          extractedContext: context,
-          lifeEvent: matchedLifeEvent,
-          topService: dlService,
-          matchedServices: [dlService, ...this.services.filter(s => s.id !== 'driving-licence').slice(0, 2)],
-          matchedSchemes: [],
-          confidence: 100,
-          isAmbiguous: false,
-          didYouMean: []
-        };
+    for (const p of PRIMARY_SERVICE_PATTERNS) {
+      if (p.regex.test(cleaned)) {
+        const found = this.services.find(s => s.id === p.id);
+        if (found) {
+          return {
+            rawQuery: text,
+            extractedContext: context,
+            lifeEvent: null,
+            topService: found,
+            matchedServices: [found],
+            matchedSchemes: [],
+            confidence: 100,
+            isAmbiguous: false,
+            didYouMean: []
+          };
+        }
       }
     }
 

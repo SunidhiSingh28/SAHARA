@@ -224,6 +224,12 @@ class SaharaApp {
     }
 
     this.updateStaticTranslations();
+
+    // Re-render open application kit modal if present
+    const kitModal = document.getElementById('application-kit-modal');
+    if (kitModal && kitModal.classList.contains('open') && this.activeService) {
+      this.showApplicationKit(this.activeService, null, null, false);
+    }
   }
 
   detectInputLanguage(text) {
@@ -233,7 +239,7 @@ class SaharaApp {
     // 1. Script checks (Direct Unicode Block ranges)
     if (/[\u0900-\u097F]/.test(str)) {
       // Devanagari script: detect if Marathi or Hindi
-      const marathiDevanagariWords = ['आहे', 'पाहिजे', 'कसे', 'काय', 'करायचे', 'माझे', 'माझी', 'नवीन', 'अर्ज', 'काढायचे', 'दाखला', 'प्रमाणपत्र', 'नागरिक', 'योजना', 'कसा'];
+      const marathiDevanagariWords = ['आहे', 'पाहिजे', 'कसे', 'काय', 'करायचे', 'माझे', 'माझी', 'नवीन', 'अर्ज', 'काढायचे', 'दाखला', 'प्रमाणपत्र', 'नागरिक', 'योजना', 'कसा', 'केले'];
       const words = str.split(/\s+/);
       if (words.some(w => marathiDevanagariWords.includes(w))) {
         return 'mr';
@@ -258,8 +264,8 @@ class SaharaApp {
       return 'mr';
     }
 
-    // Romanized Hindi / Hinglish
-    const hinglishRegex = /\b(mujhe|chahiye|banana|banwana|karna|kare|kaise|kya|kyun|mera|meri|mere|banaun|dastavez|sarkari|yojana|saal|umar|pata|namaste|janm|khata|pension|sudhar|batao|bataiye|lagti|lagte|lagta|kahan|jana|nikalna|aadhar|adhar|aadhaar)\b/i;
+    // Romanized Hindi / Hinglish (excluded general service keywords like aadhaar)
+    const hinglishRegex = /\b(mujhe|chahiye|banana|banwana|karna|kare|kaise|kya|kyun|mera|meri|mere|banaun|dastavez|sarkari|yojana|saal|umar|pata|namaste|janm|khata|pension|sudhar|batao|bataiye|lagti|lagte|lagta|kahan|jana|nikalna)\b/i;
     if (hinglishRegex.test(lower)) {
       return 'hi';
     }
@@ -397,10 +403,13 @@ class SaharaApp {
   }
 
   processCitizenInput(text, isVoice = false) {
-    // If voice command was used (or input in Indian language), adapt language immediately
-    const detectedLang = this.detectInputLanguage(text);
-    if (detectedLang && (isVoice || detectedLang !== 'en')) {
-      if (detectedLang !== i18n.getCurrentLanguage()) {
+    // Only adapt language if user has NOT explicitly chosen one in session, or if input is in non-Latin Indic script
+    const userSelected = sessionStorage.getItem('sahara_user_selected_lang');
+    const hasIndicScript = /[\u0900-\u0D7F]/.test(text);
+
+    if (!userSelected || hasIndicScript) {
+      const detectedLang = this.detectInputLanguage(text);
+      if (detectedLang && detectedLang !== i18n.getCurrentLanguage()) {
         this.switchLanguage(detectedLang);
       }
     }
@@ -519,7 +528,13 @@ class SaharaApp {
     const scheme = SCHEMES_DATA.find(sc => lifeEvent.suggestedSchemes && lifeEvent.suggestedSchemes.includes(sc.id));
 
     const item = service || scheme;
-    const understanding = `What Sahara understood: Life event selected — “${lifeEvent.title}”. Showing comprehensive services and welfare schemes.`;
+    const localizedTitle = i18n.localize(lifeEvent, 'title') || lifeEvent.title;
+    const currentLang = i18n.getCurrentLanguage();
+    const understanding = currentLang === 'mr'
+      ? `सहाराचे आकलन: जीवन प्रसंग — "${localizedTitle}". संबंधित सेवा व कल्याणकारी योजना.`
+      : currentLang === 'hi'
+        ? `सहारा की समझ: जीवन स्थिति — "${localizedTitle}"। संबंधित सरकारी सेवाएं एवं योजनाएं।`
+        : `What Sahara understood: Life event selected — “${lifeEvent.title}”. Showing comprehensive services and welfare schemes.`;
     this.showApplicationKit(item, understanding, scheme);
   }
 
@@ -530,8 +545,15 @@ class SaharaApp {
 
     if (!modal || !titleEl || !optionsEl) return;
 
-    titleEl.textContent = questionObj.question;
-    optionsEl.innerHTML = questionObj.options.map(opt => `
+    const currentLang = i18n.getCurrentLanguage();
+    const localizedQuestion = questionObj['question_' + currentLang] || questionObj.question;
+    const localizedOptions = (questionObj.options || []).map(opt => ({
+      ...opt,
+      label: opt['label_' + currentLang] || opt.label
+    }));
+
+    titleEl.textContent = localizedQuestion;
+    optionsEl.innerHTML = localizedOptions.map(opt => `
       <button class="question-btn" data-val="${opt.value}">
         ${opt.label}
       </button>
@@ -552,42 +574,56 @@ class SaharaApp {
     optionsEl.addEventListener('click', handleOptionClick);
     this.openModal(modal);
 
-    this.speech.speak(questionObj.question);
+    this.speech.speak(localizedQuestion);
   }
 
   /* =========================================================================
      8. APPLICATION KIT VIEW
      ========================================================================= */
-  showApplicationKit(item, understandingText, secondaryScheme = null) {
+  showApplicationKit(item, understandingText, secondaryScheme = null, shouldSpeak = true) {
     const modal = document.getElementById('application-kit-modal');
     const bodyEl = document.getElementById('kit-modal-body');
     const titleEl = document.getElementById('kit-modal-title');
 
-    if (!modal || !bodyEl || !titleEl) return;
+    if (!modal || !bodyEl || !titleEl || !item) return;
 
+    this.activeService = item;
+    const currentLang = i18n.getCurrentLanguage();
     const localizedName = i18n.localize(item, 'name');
     titleEl.textContent = localizedName;
     const docMatch = this.docMatcher.matchRequirements(item.documents || []);
     const office = OFFICES_DATA[item.id] || null;
 
+    const displayUnderstanding = understandingText || i18n.format('understandingService', { name: localizedName });
+    const criteriaText = (item.eligibility && item.eligibility['criteria_' + currentLang]) 
+      || (item.eligibility ? item.eligibility.criteria : 'Standard citizen criteria apply.');
+    const verificationNote = (item.eligibility && item.eligibility['verificationNote_' + currentLang])
+      || (item.eligibility ? item.eligibility.verificationNote : 'Subject to official scrutiny.');
+    const physicalVisitDesc = (item.verification && item.verification['physicalVisitDesc_' + currentLang])
+      || (item.verification ? item.verification.physicalVisitDesc : (item['physicalVisitDesc_' + currentLang] || item.physicalVisitDesc || 'Verification specified by the authority.'));
+
+    const checklist = (item.verification && item.verification['checklistItems_' + currentLang])
+      || (item.verification && item.verification.checklistItems)
+      || ['Signed official application form', 'Valid proof of identity', 'Valid proof of address'];
+
     bodyEl.innerHTML = `
       <div class="kit-header-summary">
         <div class="kit-summary-label">${i18n.t('whatSaharaUnderstood')}</div>
-        <div class="kit-summary-text">${understandingText}</div>
+        <div class="kit-summary-text">${displayUnderstanding}</div>
         <div style="font-size:11px; color:var(--sahara-text-secondary); margin-top:6px;">
-          Applicability: <strong>${item.stateApplicability || 'All India'}</strong> • Processing: <strong>${item.processingTimeline || '7-15 days'}</strong>
+          ${i18n.t('applicability')}: <strong>${item.stateApplicability || 'All India'}</strong> • ${i18n.t('processing')}: <strong>${item.processingTimeline || '7-15 days'}</strong>
         </div>
       </div>
 
       <div class="kit-section">
         <h3 class="kit-section-title">🔍 ${i18n.t('eligibilityTitle')}</h3>
         <p style="font-size:0.875rem; color:var(--sahara-text-secondary);">
-          ${i18n.getCurrentLanguage() === 'hi' ? 'प्रदान की गई जानकारी के आधार पर आपकी संभावित पात्रता:' : 'You may be eligible based on the information provided:'}
+          ${i18n.t('eligibilitySub')}
         </p>
         <div style="background:var(--sahara-surface-elevated); border:1px solid rgba(0,0,0,0.08); padding:12px; border-radius:6px; margin-top:6px; font-size:0.85rem;">
-          ${item.eligibility ? item.eligibility.criteria : 'Standard citizen criteria apply.'}
+          ${criteriaText}
           <div style="font-size:11px; color:#b45309; margin-top:4px;">
-            ⚠️ ${item.eligibility ? item.eligibility.verificationNote : 'Subject to official scrutiny.'}
+            ⚠️ ${verificationNote}
           </div>
         </div>
       </div>
@@ -595,47 +631,55 @@ class SaharaApp {
       <div class="kit-section">
         <h3 class="kit-section-title">📁 ${i18n.t('documentsNeeded')} (${docMatch.available.length}/${docMatch.total} ${i18n.t('available')})</h3>
         <div class="doc-matching-list">
-          ${docMatch.available.map(d => `
-            <div class="doc-item">
-              <div class="doc-info">
-                <span class="doc-name">${d.name}</span>
-                <span class="doc-reason">${d.reason}</span>
+          ${docMatch.available.map(d => {
+            const dName = d['name_' + currentLang] || d.name;
+            const dReason = d['reason_' + currentLang] || d.reason;
+            return `
+              <div class="doc-item">
+                <div class="doc-info">
+                  <span class="doc-name">${dName}</span>
+                  <span class="doc-reason">${dReason}</span>
+                </div>
+                <span class="doc-status-badge available">✅ ${i18n.t('available')}</span>
               </div>
-              <span class="doc-status-badge available">✅ ${i18n.t('available')}</span>
-            </div>
-          `).join('')}
+            `;
+          }).join('')}
 
-          ${docMatch.missing.map(d => `
-            <div class="doc-item">
-              <div class="doc-info">
-                <span class="doc-name">${d.name}</span>
-                <span class="doc-reason">${d.reason}</span>
+          ${docMatch.missing.map(d => {
+            const dName = d['name_' + currentLang] || d.name;
+            const dReason = d['reason_' + currentLang] || d.reason;
+            return `
+              <div class="doc-item">
+                <div class="doc-info">
+                  <span class="doc-name">${dName}</span>
+                  <span class="doc-reason">${dReason}</span>
+                </div>
+                <span class="doc-status-badge missing">❌ ${i18n.t('missing')}</span>
               </div>
-              <span class="doc-status-badge missing">❌ ${i18n.t('missing')}</span>
-            </div>
-          `).join('')}
+            `;
+          }).join('')}
         </div>
       </div>
 
       <div class="verification-box">
         <div style="font-weight:600; font-size:0.85rem; color:#b45309;">
-          ⚖️ Verification & Official Approval Requirements
+          ⚖️ ${i18n.t('verificationRequirements')}
         </div>
         <div class="verification-tag-list">
-          ${item.verification && item.verification.signatureRequired ? `<span class="verification-tag">✍️ Signature Required</span>` : ''}
-          ${item.verification && item.verification.physicalVisitRequired ? `<span class="verification-tag">📍 Physical Visit Required</span>` : `<span class="verification-tag" style="background:rgba(34,197,94,0.15); color:#15803d;">💻 100% Online Available</span>`}
-          <span class="verification-tag">🏛️ Official Verification</span>
+          ${item.verification && item.verification.signatureRequired ? `<span class="verification-tag">✍️ ${i18n.t('signatureRequired')}</span>` : ''}
+          ${item.verification && item.verification.physicalVisitRequired ? `<span class="verification-tag">📍 ${i18n.t('physicalVisitRequired')}</span>` : `<span class="verification-tag" style="background:rgba(34,197,94,0.15); color:#15803d;">💻 ${i18n.t('onlineAvailable')}</span>`}
+          <span class="verification-tag">🏛️ ${i18n.t('officialVerification')}</span>
         </div>
         <p style="font-size:11px; color:var(--sahara-text-secondary); margin-top:6px;">
-          ${item.verification ? item.verification.physicalVisitDesc : 'Verification specified by the authority.'}
+          ${physicalVisitDesc}
         </p>
       </div>
 
       ${item.forms && item.forms.length > 0 ? `
         <div class="kit-section">
-          <h3 class="kit-section-title">📄 Official Forms & Printouts</h3>
+          <h3 class="kit-section-title">📄 ${i18n.t('officialForms')}</h3>
           <p style="font-size:12px; color:var(--sahara-text-secondary); margin-bottom:8px;">
-            Official printable application forms sourced directly from official government portals:
+            ${i18n.t('officialFormsSub')}
           </p>
           <div style="display:flex; flex-direction:column; gap:8px;">
             ${item.forms.map(f => `
@@ -646,15 +690,15 @@ class SaharaApp {
                       🏛️ ${f.formNumber}: ${f.title}
                     </div>
                     <div style="font-size:11px; color:var(--sahara-text-muted); margin-top:2px;">
-                      Official issuing authority: <strong>${item.officialSource || 'Govt of India'}</strong>
+                      ${i18n.t('officialSource')}: <strong>${item.officialSource || 'Govt of India'}</strong>
                     </div>
                   </div>
                   <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
                     <a href="${f.officialUrl || item.officialPortal}" target="_blank" rel="noopener noreferrer" class="route-btn primary" style="padding:6px 14px; font-size:11px; text-decoration:none; margin-top:0; display:inline-flex; align-items:center; gap:5px;">
-                      <span>📥 Download Official Form from Official Website</span> <span>↗</span>
+                      <span>📥 ${i18n.t('downloadOfficialForm')}</span> <span>↗</span>
                     </a>
                     <button class="route-btn secondary" style="padding:6px 12px; font-size:11px; margin-top:0;" onclick="window.saharaApp.printOfficialForm('${item.id}', '${f.formNumber}')">
-                      🖨️ Official Printout
+                      🖨️ ${i18n.t('officialPrintout')}
                     </button>
                   </div>
                 </div>
@@ -666,7 +710,7 @@ class SaharaApp {
 
       ${item.filledDemo ? `
         <div class="kit-section">
-          <h3 class="kit-section-title">✍️ Filled-Form Demonstration</h3>
+          <h3 class="kit-section-title">✍️ ${i18n.t('filledDemoTitle')}</h3>
           <div class="demo-form-container">
             <div class="demo-banner">${item.filledDemo.disclaimer}</div>
             <div style="font-weight:600; font-size:13px; margin-bottom:8px; color:#18181b;">${item.filledDemo.title}</div>
@@ -675,7 +719,7 @@ class SaharaApp {
                 <div class="demo-field">
                   <div class="demo-field-label">${fld.label}</div>
                   <div class="demo-field-value">${fld.value}</div>
-                  <div class="demo-field-tip">💡 What goes here: ${fld.tip}</div>
+                  <div class="demo-field-tip">💡 ${fld.tip}</div>
                 </div>
               `).join('')}
             </div>
@@ -685,36 +729,40 @@ class SaharaApp {
 
       ${item.tutorial && item.tutorial.length > 0 ? `
         <div class="kit-section">
-          <h3 class="kit-section-title">📖 Step-by-Step Instructions</h3>
+          <h3 class="kit-section-title">📖 ${i18n.t('tutorialTitle')}</h3>
           <div style="display:flex; flex-direction:column; gap:8px;">
-            ${item.tutorial.map(t => `
-              <div style="display:flex; gap:10px; background:var(--sahara-surface-elevated); padding:8px 12px; border-radius:6px;">
-                <div style="font-weight:700; color:var(--sahara-accent); font-size:0.85rem;">${t.step}.</div>
-                <div>
-                  <div style="font-weight:600; font-size:0.85rem; color:var(--sahara-text-primary);">${t.title}</div>
-                  <div style="font-size:0.75rem; color:var(--sahara-text-secondary); margin-top:2px;">${t.desc}</div>
+            ${item.tutorial.map(t => {
+              const tTitle = t['title_' + currentLang] || t.title;
+              const tDesc = t['desc_' + currentLang] || t.desc;
+              return `
+                <div style="display:flex; gap:10px; background:var(--sahara-surface-elevated); padding:8px 12px; border-radius:6px;">
+                  <div style="font-weight:700; color:var(--sahara-accent); font-size:0.85rem;">${t.step}.</div>
+                  <div>
+                    <div style="font-weight:600; font-size:0.85rem; color:var(--sahara-text-primary);">${tTitle}</div>
+                    <div style="font-size:0.75rem; color:var(--sahara-text-secondary); margin-top:2px;">${tDesc}</div>
+                  </div>
                 </div>
-              </div>
-            `).join('')}
+              `;
+            }).join('')}
           </div>
         </div>
       ` : ''}
 
       ${secondaryScheme ? `
         <div class="kit-section" style="border:1px solid rgba(139,92,246,0.25); background:rgba(139,92,246,0.06); border-radius:6px; padding:12px;">
-          <h3 class="kit-section-title" style="color:#7c3aed;">🎁 Relevant Welfare Scheme: ${secondaryScheme.name}</h3>
-          <p style="font-size:0.85rem; color:var(--sahara-text-primary);"><strong>Benefit:</strong> ${secondaryScheme.benefits}</p>
+          <h3 class="kit-section-title" style="color:#7c3aed;">🎁 ${i18n.localize(secondaryScheme, 'name')}</h3>
+          <p style="font-size:0.85rem; color:var(--sahara-text-primary);">${i18n.localize(secondaryScheme, 'description') || secondaryScheme.benefits}</p>
         </div>
       ` : ''}
 
       <div class="kit-section">
-        <h3 class="kit-section-title">🚀 Where to Apply</h3>
+        <h3 class="kit-section-title">🚀 ${i18n.t('whereToApply')}</h3>
         <div class="action-route-grid">
           ${(item.officialPortal || (item.forms && item.forms[0] ? item.forms[0].officialUrl : null)) ? `
             <div class="route-card">
               <div>
                 <div style="font-weight:600; color:#0284c7; font-size:0.85rem;">${i18n.t('applyOnline').toUpperCase()}</div>
-                <div style="font-size:11px; color:var(--sahara-text-muted); margin-top:4px;">Official Portal: ${item.officialSource || 'Govt of India'}</div>
+                <div style="font-size:11px; color:var(--sahara-text-muted); margin-top:4px;">${i18n.t('officialPortalLabel')}: ${item.officialSource || 'Govt of India'}</div>
               </div>
               <a href="${item.officialPortal || (item.forms && item.forms[0] ? item.forms[0].officialUrl : '#')}" target="_blank" rel="noopener noreferrer" class="route-btn primary">${i18n.t('applyOnline')} ↗</a>
             </div>
@@ -734,19 +782,14 @@ class SaharaApp {
       </div>
 
       <div class="kit-section">
-        <h3 class="kit-section-title">☑️ Are You Ready? (Checklist)</h3>
+        <h3 class="kit-section-title">☑️ ${i18n.t('checklistTitle')}</h3>
         <div class="printable-checklist">
-          ${item.verification && item.verification.checklistItems ? item.verification.checklistItems.map(itemText => `
+          ${checklist.map(itemText => `
             <label class="checklist-item">
               <input type="checkbox" class="checklist-checkbox" checked />
               <span>${itemText}</span>
             </label>
-          `).join('') : `
-            <label class="checklist-item">
-              <input type="checkbox" class="checklist-checkbox" checked />
-              <span>Application Form completed and signed</span>
-            </label>
-          `}
+          `).join('')}
         </div>
         <button class="route-btn secondary" style="width:100%; margin-top:8px; display:inline-flex; align-items:center; justify-content:center; gap:8px;" onclick="window.saharaApp.printChecklistPoints(window.saharaApp.activeService)">
           <span>🖨️</span> <span>${i18n.t('downloadChecklist')}</span>
@@ -760,8 +803,17 @@ class SaharaApp {
     `;
 
     this.openModal(modal);
-    const spokenIntro = i18n.format('kitIntroAudio', { name: localizedName });
-    this.speech.speak(spokenIntro);
+
+    if (shouldSpeak) {
+      const docNames = (item.documents || []).map(d => d['name_' + currentLang] || d.name).slice(0, 3).join(', ');
+      const spokenIntro = i18n.format('kitIntroAudio', {
+        name: localizedName,
+        authority: item.officialSource || 'Government of India',
+        timeline: item.processingTimeline || '15 days',
+        docs: docNames
+      });
+      this.speech.speak(spokenIntro);
+    }
   }
 
   /* =========================================================================
@@ -1080,9 +1132,21 @@ class SaharaApp {
       mainSpeakerBtn.addEventListener('click', () => {
         const searchInput = document.getElementById('main-search-input')?.value.trim();
         const tickerText = document.getElementById('ticker-recommendation-text')?.textContent || '';
-        const text = searchInput 
-          ? `Searching Sahara for: ${searchInput}. Citizen guidance engine is ready.` 
-          : `Sahara guidance prompt: ${tickerText}. Type or speak your question to begin.`;
+        const currentLang = i18n.getCurrentLanguage();
+        let text = '';
+        if (currentLang === 'mr') {
+          text = searchInput 
+            ? `सहारा शोध: ${searchInput}. नागरिक मार्गदर्शन प्रणाली तयार आहे.` 
+            : `सहारा मार्गदर्शन: ${tickerText}. तुमचा प्रश्न विचारा किंवा बोला.`;
+        } else if (currentLang === 'hi') {
+          text = searchInput 
+            ? `सहारा खोज: ${searchInput}। नागरिक मार्गदर्शन प्रणाली तैयार है।` 
+            : `सहारा मार्गदर्शन: ${tickerText}। अपना प्रश्न पूछें या बोलें।`;
+        } else {
+          text = searchInput 
+            ? `Searching Sahara for: ${searchInput}. Citizen guidance engine is ready.` 
+            : `Sahara guidance prompt: ${tickerText}. Type or speak your question to begin.`;
+        }
         this.toggleSpeaker(mainSpeakerBtn, text);
       });
     }
@@ -1101,39 +1165,52 @@ class SaharaApp {
     registerModalSpeaker('kit-modal-speaker-btn', () => {
       if (!this.activeService) return 'No service details selected.';
       const s = this.activeService;
+      const currentLang = i18n.getCurrentLanguage();
       const localizedName = i18n.localize(s, 'name');
-      const docs = (s.documents || []).map(d => d.name).join(', ');
-      if (i18n.getCurrentLanguage() === 'hi') {
-        return `${localizedName} के लिए आवेदन किट। जारीकर्ता: ${s.officialSource || 'भारत सरकार'}। आवश्यक दस्तावेज़ हैं: ${docs}। समय सीमा: ${s.processingTimeline || '7 से 15 कार्य दिवस'}।`;
+      const docs = (s.documents || []).map(d => d['name_' + currentLang] || d.name).join(', ');
+      const criteria = (s.eligibility && s.eligibility['criteria_' + currentLang]) || (s.eligibility ? s.eligibility.criteria : '');
+      const timeline = s.processingTimeline || '7-15 days';
+      const authority = s.officialSource || 'Government of India';
+
+      if (currentLang === 'mr') {
+        return `${localizedName} साठीचा अर्ज तपशील. जारीकर्ता अधिकृत संस्था: ${authority}. आवश्यक कागदपत्रे आहेत: ${docs}. प्रक्रिया कालावधी: ${timeline}. पात्रता निकष: ${criteria}.`;
+      } else if (currentLang === 'hi') {
+        return `${localizedName} के लिए आवेदन किट। जारीकर्ता: ${authority}। आवश्यक दस्तावेज़ हैं: ${docs}। समय सीमा: ${timeline}। पात्रता मानदंड: ${criteria}।`;
       }
-      return `Application Kit for ${localizedName}. Issued by ${s.officialSource || 'Government of India'}. Required documents are: ${docs}. Eligibility: ${s.eligibility ? s.eligibility.criteria : 'Standard criteria apply'}. Processing timeline is ${s.processingTimeline || '7 to 15 working days'}.`;
+      return `Application Kit for ${localizedName}. Issued by ${authority}. Required documents are: ${docs}. Eligibility criteria: ${criteria || 'Standard citizen criteria apply'}. Processing timeline is ${timeline}.`;
     });
 
     registerModalSpeaker('vault-modal-speaker-btn', () => {
-      return 'My Documents Vault. Sahara securely tracks your uploaded government proofs such as Aadhaar, PAN, and Voter ID, and highlights citizen services you can apply for immediately.';
+      return i18n.t('vaultSpeaker');
     });
 
     registerModalSpeaker('life-events-modal-speaker-btn', () => {
-      return 'What are you trying to do? Browse citizen life situations such as baby born, turned 18, retired, starting a business, or lost documents to get customized step-by-step guidance.';
+      return i18n.t('lifeEventsSpeaker');
     });
 
     registerModalSpeaker('services-modal-speaker-btn', () => {
-      return 'Services you might be looking for. Browse official government certificates, welfare schemes, pensions, driving licences, and business registrations.';
+      return i18n.t('servicesSpeaker');
     });
 
     registerModalSpeaker('tracker-modal-speaker-btn', () => {
-      return 'Application Status and Delay Tracker. Track any application reference number across central and state portals, check guaranteed delivery days under Citizen Charters, and file statutory delay complaints.';
+      return i18n.t('trackerSpeaker');
     });
 
     registerModalSpeaker('smart-q-speaker-btn', () => {
-      const title = document.getElementById('smart-q-title')?.textContent || 'Sahara guidance question.';
-      const options = Array.from(document.querySelectorAll('#smart-q-options button')).map(b => b.textContent).join(', or ');
+      const title = document.getElementById('smart-q-title')?.textContent || i18n.t('smartQuestionLabel');
+      const options = Array.from(document.querySelectorAll('#smart-q-options button')).map(b => b.textContent.trim()).join(', ');
+      const currentLang = i18n.getCurrentLanguage();
+      if (currentLang === 'mr') {
+        return `${title}. तुमचे पर्याय आहेत: ${options}`;
+      } else if (currentLang === 'hi') {
+        return `${title}। आपके विकल्प हैं: ${options}`;
+      }
       return `${title}. Your choices are: ${options}`;
     });
 
     registerModalSpeaker('ambiguity-speaker-btn', () => {
-      const options = Array.from(document.querySelectorAll('#ambiguity-content-area .route-card')).map(b => b.querySelector('div')?.textContent || '').join(', or ');
-      return `Did you mean one of these services? ${options}`;
+      const options = Array.from(document.querySelectorAll('#ambiguity-content-area .route-card')).map(b => b.querySelector('div')?.textContent || '').join(', ');
+      return `${i18n.t('didYouMeanSpeaker')} ${options}`;
     });
   }
 
@@ -1175,14 +1252,16 @@ class SaharaApp {
     const target = document.getElementById('print-checklist-target');
     if (!target) return;
 
-    const checklistItems = (s.verification && s.verification.checklistItems) 
-      ? s.verification.checklistItems 
-      : ['Signed official application form', 'Valid proof of identity', 'Valid proof of address'];
+    const currentLang = i18n.getCurrentLanguage();
+    const localizedName = i18n.localize(s, 'name');
+    const checklistItems = (s.verification && s.verification['checklistItems_' + currentLang]) 
+      || (s.verification && s.verification.checklistItems) 
+      || ['Signed official application form', 'Valid proof of identity', 'Valid proof of address'];
 
     target.innerHTML = `
       <div class="print-points-title">SAHARA CITIZEN DOCUMENT CHECKLIST</div>
       <div class="print-meta-row">
-        <strong>Service:</strong> ${s.name}<br>
+        <strong>Service:</strong> ${localizedName}<br>
         <strong>Authority:</strong> ${s.officialSource || 'Government of India'} &bull; 
         <strong>Timeline:</strong> ${s.processingTimeline || '15-30 days'} &bull; 
         <strong>Official Fee:</strong> ${s.fees || 'As prescribed by government'}
@@ -1190,15 +1269,19 @@ class SaharaApp {
 
       <div class="print-section-heading">1. Required Documents to Carry (Originals + Photocopies)</div>
       <ul class="print-points-list">
-        ${(s.documents || []).map(d => `
-          <li class="print-point-item">
-            <span class="print-point-checkbox"></span>
-            <div>
-              <strong>${d.name}</strong> ${d.mandatory ? '(Mandatory)' : '(Optional)'}<br>
-              <span style="font-size:10pt; color:#444;">Purpose: ${d.reason}</span>
-            </div>
-          </li>
-        `).join('')}
+        ${(s.documents || []).map(d => {
+          const dName = d['name_' + currentLang] || d.name;
+          const dReason = d['reason_' + currentLang] || d.reason;
+          return `
+            <li class="print-point-item">
+              <span class="print-point-checkbox"></span>
+              <div>
+                <strong>${dName}</strong> ${d.mandatory ? '(Mandatory)' : '(Optional)'}<br>
+                <span style="font-size:10pt; color:#444;">Purpose: ${dReason}</span>
+              </div>
+            </li>
+          `;
+        }).join('')}
       </ul>
 
       <div class="print-section-heading">2. Official Verification Checklist Points</div>
@@ -1214,14 +1297,18 @@ class SaharaApp {
       ${s.tutorial && s.tutorial.length > 0 ? `
         <div class="print-section-heading">3. Step-by-Step Submission Instructions</div>
         <ul class="print-points-list">
-          ${s.tutorial.map(t => `
-            <li class="print-point-item">
-              <span style="font-weight:bold; min-width:20px;">${t.step}.</span>
-              <div>
-                <strong>${t.title}</strong>: ${t.desc}
-              </div>
-            </li>
-          `).join('')}
+          ${s.tutorial.map(t => {
+            const tTitle = t['title_' + currentLang] || t.title;
+            const tDesc = t['desc_' + currentLang] || t.desc;
+            return `
+              <li class="print-point-item">
+                <span style="font-weight:bold; min-width:20px;">${t.step}.</span>
+                <div>
+                  <strong>${tTitle}</strong>: ${tDesc}
+                </div>
+              </li>
+            `;
+          }).join('')}
         </ul>
       ` : ''}
 
@@ -1242,6 +1329,9 @@ class SaharaApp {
     const target = document.getElementById('print-checklist-target');
     if (!target) return;
 
+    const currentLang = i18n.getCurrentLanguage();
+    const localizedName = i18n.localize(s, 'name');
+
     target.innerHTML = `
       <div style="border: 2px solid #000; padding: 20px; font-family: Arial, sans-serif;">
         <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 16px;">
@@ -1252,7 +1342,7 @@ class SaharaApp {
 
         <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
           <div style="font-size: 11pt; line-height: 1.6;">
-            <strong>Service Name:</strong> ${s.name}<br>
+            <strong>Service Name:</strong> ${localizedName}<br>
             <strong>State / Jurisdiction:</strong> ${s.stateApplicability || 'All India'}<br>
             <strong>Processing Statutory Timeline:</strong> ${s.processingTimeline || '15-30 days'}<br>
             <strong>Prescribed Government Fee:</strong> ${s.fees || 'Free / As per rule'}
@@ -1274,7 +1364,7 @@ class SaharaApp {
 
         <div style="font-size: 12pt; font-weight: bold; border-bottom: 1px solid #000; margin-bottom: 8px;">2. ENCLOSED MANDATORY DOCUMENTS</div>
         <ul style="font-size: 10.5pt; line-height: 1.6; margin-bottom: 16px; padding-left: 20px;">
-          ${(s.documents || []).map(d => `<li>[ &nbsp; ] Self-Attested Photocopy of <strong>${d.name}</strong></li>`).join('')}
+          ${(s.documents || []).map(d => `<li>[ &nbsp; ] Self-Attested Photocopy of <strong>${d['name_' + currentLang] || d.name}</strong></li>`).join('')}
         </ul>
 
         <div style="font-size: 12pt; font-weight: bold; border-bottom: 1px solid #000; margin-bottom: 8px;">3. CITIZEN DECLARATION</div>
