@@ -9,7 +9,7 @@ export const LIFE_EVENTS_DATA = [
     title: 'My baby was born',
     subtitle: 'Birth registration, child Aadhaar, vaccinations & maternity benefits',
     icon: '👶',
-    suggestedServices: ['birth-certificate'],
+    suggestedServices: ['birth-certificate', 'aadhaar-card'],
     suggestedSchemes: ['scheme-pmmvy', 'scheme-ayushman-bharat'],
     smartQuestions: [
       {
@@ -164,15 +164,17 @@ export const LIFE_EVENTS_DATA = [
     title: 'I lost an important document',
     subtitle: 'Duplicate Voter ID, reprint PAN, lost passport FIR & Aadhaar recovery',
     icon: '🔍',
-    suggestedServices: ['voter-id', 'pan-card'],
+    suggestedServices: ['aadhaar-card', 'pan-card', 'voter-id', 'driving-licence'],
     suggestedSchemes: [],
     smartQuestions: [
       {
         id: 'lost_doc_name',
         question: 'Which document did you lose?',
         options: [
-          { label: 'Voter ID (EPIC replacement)', value: 'voter' },
+          { label: 'Aadhaar Card (Reprint / UID recovery)', value: 'aadhaar' },
           { label: 'PAN Card (Reprint)', value: 'pan' },
+          { label: 'Voter ID (EPIC replacement)', value: 'voter' },
+          { label: 'Driving Licence (Duplicate DL)', value: 'dl' },
           { label: 'Passport (Requires Police Lost Report)', value: 'passport' }
         ]
       }

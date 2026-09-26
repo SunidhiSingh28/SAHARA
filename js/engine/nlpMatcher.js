@@ -28,16 +28,55 @@ export class NlpMatcher {
     const cleaned = text.trim().toLowerCase();
     const context = this.extractContext(cleaned);
 
-    // 1. Direct Life Event match check
+    // 1. Direct High-Priority Fast-Paths for Aadhaar and License queries
+    const aadharDirectTerms = ['aadhar', 'aadhaar', 'adhar', 'uidai', 'eaadhaar', 'aadhar card', 'aadhaar card', 'adhar card', 'आधार', 'आधार कार्ड', 'uid'];
+    const isAadharDirect = aadharDirectTerms.some(t => cleaned === t || cleaned.includes('aadhar') || cleaned.includes('aadhaar') || cleaned.includes('adhar') || cleaned.includes('आधार') || cleaned.includes('uidai'));
+    if (isAadharDirect) {
+      const aadharService = this.services.find(s => s.id === 'aadhaar-card');
+      if (aadharService) {
+        return {
+          rawQuery: text,
+          extractedContext: context,
+          lifeEvent: matchedLifeEvent,
+          topService: aadharService,
+          matchedServices: [aadharService, ...this.services.filter(s => s.id !== 'aadhaar-card').slice(0, 2)],
+          matchedSchemes: [],
+          confidence: 100,
+          isAmbiguous: false,
+          didYouMean: []
+        };
+      }
+    }
+
+    const licenseDirectTerms = ['license', 'licence', 'driving license', 'driving licence', 'driver license', 'driving', 'dl', 'learner license', 'learner licence', 'लाइसेंस', 'ड्राइविंग लाइसेंस'];
+    const isLicenseDirect = licenseDirectTerms.some(t => cleaned === t || cleaned.includes('license') || cleaned.includes('licence') || cleaned.includes('driving') || cleaned.includes('लाइसेंस') || cleaned === 'dl');
+    if (isLicenseDirect) {
+      const dlService = this.services.find(s => s.id === 'driving-licence');
+      if (dlService) {
+        return {
+          rawQuery: text,
+          extractedContext: context,
+          lifeEvent: matchedLifeEvent,
+          topService: dlService,
+          matchedServices: [dlService, ...this.services.filter(s => s.id !== 'driving-licence').slice(0, 2)],
+          matchedSchemes: [],
+          confidence: 100,
+          isAmbiguous: false,
+          didYouMean: []
+        };
+      }
+    }
+
+    // 2. Direct Life Event match check
     const matchedLifeEvent = this.matchLifeEvent(cleaned);
 
-    // 2. Score services
+    // 3. Score services
     const scoredServices = this.scoreServices(cleaned, context, matchedLifeEvent);
 
-    // 3. Score schemes (integrated into recommendation, never isolated)
+    // 4. Score schemes (integrated into recommendation, never isolated)
     const scoredSchemes = this.scoreSchemes(cleaned, context, matchedLifeEvent);
 
-    // 4. Determine primary recommendation & ambiguity
+    // 5. Determine primary recommendation & ambiguity
     const topService = scoredServices[0] || null;
     const topScheme = scoredSchemes[0] || null;
 
@@ -180,6 +219,12 @@ export class NlpMatcher {
       }
 
       // Specific phrase boosters
+      if ((text.includes('aadhar') || text.includes('aadhaar') || text.includes('adhar') || text.includes('uidai') || text.includes('आधार')) && s.id === 'aadhaar-card') {
+        score += 150;
+      }
+      if ((text.includes('driving') || text.includes('licence') || text.includes('license') || text.includes('driver') || text.includes('sarathi') || text.includes('parivahan') || text.includes('लाइसेंस')) && s.id === 'driving-licence') {
+        score += 150;
+      }
       if ((text.includes('vote') || text.includes('election card') || text.includes('voter card') || text.includes('matdan')) && s.id === 'voter-id') {
         score += 60;
       }
@@ -189,7 +234,7 @@ export class NlpMatcher {
       if ((text.includes('pan card') || text.includes('pan')) && s.id === 'pan-card') {
         score += 60;
       }
-      if ((text.includes('driving') || text.includes('licence') || text.includes('license') || text.includes('bike') || text.includes('car')) && s.id === 'driving-licence') {
+      if ((text.includes('bike') || text.includes('car')) && s.id === 'driving-licence') {
         score += 60;
       }
       if ((text.includes('baby') || text.includes('born') || text.includes('birth certificate')) && s.id === 'birth-certificate') {

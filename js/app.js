@@ -199,14 +199,87 @@ class SaharaApp {
       const opt = e.target.closest('.lang-option');
       if (!opt) return;
       const code = opt.getAttribute('data-code');
-      i18n.setLanguage(code);
-      updateLabel();
-      this.updateStaticTranslations();
-
-      langDropdown.querySelectorAll('.lang-option').forEach(el => el.classList.remove('active'));
-      opt.classList.add('active');
+      this.switchLanguage(code);
       langDropdown.classList.remove('show');
     });
+  }
+
+  switchLanguage(code) {
+    if (!code) return;
+    i18n.setLanguage(code);
+
+    const langLabel = document.getElementById('current-lang-label');
+    const cur = i18n.getCurrentLanguageObj();
+    if (langLabel) langLabel.textContent = cur.native || cur.name;
+
+    const langDropdown = document.getElementById('lang-dropdown-menu');
+    if (langDropdown) {
+      langDropdown.querySelectorAll('.lang-option').forEach(el => {
+        if (el.getAttribute('data-code') === code) {
+          el.classList.add('active');
+        } else {
+          el.classList.remove('active');
+        }
+      });
+    }
+
+    this.updateStaticTranslations();
+  }
+
+  detectInputLanguage(text) {
+    if (!text || typeof text !== 'string') return null;
+    const str = text.trim();
+
+    // 1. Script checks (Direct Unicode Block ranges)
+    if (/[\u0900-\u097F]/.test(str)) {
+      // Devanagari script: detect if Marathi or Hindi
+      const marathiDevanagariWords = ['आहे', 'पाहिजे', 'कसे', 'काय', 'करायचे', 'माझे', 'माझी', 'नवीन', 'अर्ज', 'काढायचे', 'दाखला', 'प्रमाणपत्र', 'नागरिक', 'योजना', 'कसा'];
+      const words = str.split(/\s+/);
+      if (words.some(w => marathiDevanagariWords.includes(w))) {
+        return 'mr';
+      }
+      return 'hi';
+    }
+    if (/[\u0980-\u09FF]/.test(str)) return 'bn';
+    if (/[\u0B80-\u0BFF]/.test(str)) return 'ta';
+    if (/[\u0C00-\u0C7F]/.test(str)) return 'te';
+    if (/[\u0C80-\u0CFF]/.test(str)) return 'kn';
+    if (/[\u0D00-\u0D7F]/.test(str)) return 'ml';
+    if (/[\u0A80-\u0AFF]/.test(str)) return 'gu';
+    if (/[\u0A00-\u0A7F]/.test(str)) return 'pa';
+    if (/[\u0600-\u06FF]/.test(str)) return 'ur';
+    if (/[\u0B00-\u0B7F]/.test(str)) return 'or';
+
+    // 2. Romanized Indian phrases / Hinglish detection
+    const lower = str.toLowerCase();
+
+    // Romanized Marathi
+    if (/\b(mala|pahije|aahe|kasa|kase|kiti|mahiti|shasan|arja|karaycha|navin|dakhla)\b/i.test(lower)) {
+      return 'mr';
+    }
+
+    // Romanized Hindi / Hinglish
+    const hinglishRegex = /\b(mujhe|chahiye|banana|banwana|karna|kare|kaise|kya|kyun|mera|meri|mere|banaun|dastavez|sarkari|yojana|saal|umar|pata|namaste|janm|khata|pension|sudhar|batao|bataiye|lagti|lagte|lagta|kahan|jana|nikalna|aadhar|adhar|aadhaar)\b/i;
+    if (hinglishRegex.test(lower)) {
+      return 'hi';
+    }
+
+    // Romanized Tamil
+    if (/\b(enakku|vendum|eppadi|seyyavendum|theriyavendum)\b/i.test(lower)) {
+      return 'ta';
+    }
+
+    // Romanized Telugu
+    if (/\b(naaku|kaavali|ela|cheyali)\b/i.test(lower)) {
+      return 'te';
+    }
+
+    // Romanized Bengali
+    if (/\b(aami|amar|chai|kivabe|korbo|dorokar)\b/i.test(lower)) {
+      return 'bn';
+    }
+
+    return 'en';
   }
 
   updateStaticTranslations() {
@@ -252,7 +325,7 @@ class SaharaApp {
         if (transcriptEl) transcriptEl.textContent = `“${text}”`;
         if (searchInput) searchInput.value = text;
         if (isFinal && text.trim().length > 2) {
-          this.processCitizenInput(text);
+          this.processCitizenInput(text, true);
         }
       },
       onSpeakingStart: () => {
@@ -323,7 +396,15 @@ class SaharaApp {
     }
   }
 
-  processCitizenInput(text) {
+  processCitizenInput(text, isVoice = false) {
+    // If voice command was used (or input in Indian language), adapt language immediately
+    const detectedLang = this.detectInputLanguage(text);
+    if (detectedLang && (isVoice || detectedLang !== 'en')) {
+      if (detectedLang !== i18n.getCurrentLanguage()) {
+        this.switchLanguage(detectedLang);
+      }
+    }
+
     this.smartQuestions.reset();
     const result = this.nlp.parse(text);
 
@@ -347,7 +428,9 @@ class SaharaApp {
 
     if (result.matchedSchemes.length > 0) {
       const scheme = result.matchedSchemes[0];
-      this.showApplicationKit(scheme, 'What Sahara understood: You are looking for relevant welfare schemes.');
+      const localizedSchemeName = i18n.localize(scheme, 'name');
+      const schemeUnderstanding = i18n.format('understandingScheme', { name: localizedSchemeName });
+      this.showApplicationKit(scheme, schemeUnderstanding);
       return;
     }
 
@@ -411,7 +494,8 @@ class SaharaApp {
         this.handleServiceSelected(service);
       });
     } else {
-      const understanding = `What Sahara understood: You are looking to apply for ${service.name}.`;
+      const localizedName = i18n.localize(service, 'name');
+      const understanding = i18n.format('understandingService', { name: localizedName });
       this.showApplicationKit(service, understanding);
     }
   }
@@ -481,23 +565,24 @@ class SaharaApp {
 
     if (!modal || !bodyEl || !titleEl) return;
 
-    titleEl.textContent = item.name;
+    const localizedName = i18n.localize(item, 'name');
+    titleEl.textContent = localizedName;
     const docMatch = this.docMatcher.matchRequirements(item.documents || []);
     const office = OFFICES_DATA[item.id] || null;
 
     bodyEl.innerHTML = `
       <div class="kit-header-summary">
-        <div class="kit-summary-label">What Sahara Understood</div>
+        <div class="kit-summary-label">${i18n.t('whatSaharaUnderstood')}</div>
         <div class="kit-summary-text">${understandingText}</div>
         <div style="font-size:11px; color:var(--sahara-text-secondary); margin-top:6px;">
-          Applicability: <strong>${item.stateApplicability || 'All India'}</strong> • Processing: <strong>${item.processingTimeline || '15-30 days'}</strong>
+          Applicability: <strong>${item.stateApplicability || 'All India'}</strong> • Processing: <strong>${item.processingTimeline || '7-15 days'}</strong>
         </div>
       </div>
 
       <div class="kit-section">
-        <h3 class="kit-section-title">🔍 Eligibility</h3>
+        <h3 class="kit-section-title">🔍 ${i18n.t('eligibilityTitle')}</h3>
         <p style="font-size:0.875rem; color:var(--sahara-text-secondary);">
-          You may be eligible based on the information provided:
+          ${i18n.getCurrentLanguage() === 'hi' ? 'प्रदान की गई जानकारी के आधार पर आपकी संभावित पात्रता:' : 'You may be eligible based on the information provided:'}
         </p>
         <div style="background:var(--sahara-surface-elevated); border:1px solid rgba(0,0,0,0.08); padding:12px; border-radius:6px; margin-top:6px; font-size:0.85rem;">
           ${item.eligibility ? item.eligibility.criteria : 'Standard citizen criteria apply.'}
@@ -508,7 +593,7 @@ class SaharaApp {
       </div>
 
       <div class="kit-section">
-        <h3 class="kit-section-title">📁 Documents You May Need (${docMatch.available.length}/${docMatch.total} Available)</h3>
+        <h3 class="kit-section-title">📁 ${i18n.t('documentsNeeded')} (${docMatch.available.length}/${docMatch.total} ${i18n.t('available')})</h3>
         <div class="doc-matching-list">
           ${docMatch.available.map(d => `
             <div class="doc-item">
@@ -516,7 +601,7 @@ class SaharaApp {
                 <span class="doc-name">${d.name}</span>
                 <span class="doc-reason">${d.reason}</span>
               </div>
-              <span class="doc-status-badge available">✅ Available</span>
+              <span class="doc-status-badge available">✅ ${i18n.t('available')}</span>
             </div>
           `).join('')}
 
@@ -526,7 +611,7 @@ class SaharaApp {
                 <span class="doc-name">${d.name}</span>
                 <span class="doc-reason">${d.reason}</span>
               </div>
-              <span class="doc-status-badge missing">❌ Missing</span>
+              <span class="doc-status-badge missing">❌ ${i18n.t('missing')}</span>
             </div>
           `).join('')}
         </div>
@@ -625,24 +710,24 @@ class SaharaApp {
       <div class="kit-section">
         <h3 class="kit-section-title">🚀 Where to Apply</h3>
         <div class="action-route-grid">
-          ${item.onlineAvailable ? `
+          ${(item.officialPortal || (item.forms && item.forms[0] ? item.forms[0].officialUrl : null)) ? `
             <div class="route-card">
               <div>
-                <div style="font-weight:600; color:#0284c7; font-size:0.85rem;">APPLY ONLINE</div>
-                <div style="font-size:11px; color:var(--sahara-text-muted); margin-top:4px;">Official Portal: ${item.officialSource}</div>
+                <div style="font-weight:600; color:#0284c7; font-size:0.85rem;">${i18n.t('applyOnline').toUpperCase()}</div>
+                <div style="font-size:11px; color:var(--sahara-text-muted); margin-top:4px;">Official Portal: ${item.officialSource || 'Govt of India'}</div>
               </div>
-              <a href="${item.officialPortal}" target="_blank" rel="noopener noreferrer" class="route-btn primary">Open Official Portal ↗</a>
+              <a href="${item.officialPortal || (item.forms && item.forms[0] ? item.forms[0].officialUrl : '#')}" target="_blank" rel="noopener noreferrer" class="route-btn primary">${i18n.t('applyOnline')} ↗</a>
             </div>
           ` : ''}
 
           ${office ? `
             <div class="route-card">
               <div>
-                <div style="font-weight:600; color:#d97706; font-size:0.85rem;">VISIT OFFICE</div>
+                <div style="font-weight:600; color:#d97706; font-size:0.85rem;">${i18n.t('visitOffice').toUpperCase()}</div>
                 <div style="font-size:11px; color:var(--sahara-text-primary); margin-top:4px;">${office.officeName}</div>
                 <div style="font-size:10px; color:var(--sahara-text-muted);">${office.address}</div>
               </div>
-              <a href="https://maps.google.com/?q=${encodeURIComponent(office.mapsQuery)}" target="_blank" rel="noopener noreferrer" class="route-btn secondary">Directions ↗</a>
+              <a href="https://maps.google.com/?q=${encodeURIComponent(office.mapsQuery)}" target="_blank" rel="noopener noreferrer" class="route-btn secondary">${i18n.t('visitOffice')} ↗</a>
             </div>
           ` : ''}
         </div>
@@ -664,18 +749,19 @@ class SaharaApp {
           `}
         </div>
         <button class="route-btn secondary" style="width:100%; margin-top:8px; display:inline-flex; align-items:center; justify-content:center; gap:8px;" onclick="window.saharaApp.printChecklistPoints(window.saharaApp.activeService)">
-          <span>🖨️</span> <span>Download / Print Checklist (Points Only)</span>
+          <span>🖨️</span> <span>${i18n.t('downloadChecklist')}</span>
         </button>
       </div>
 
       <div style="padding-top:10px; border-top:1px solid rgba(0,0,0,0.08); font-size:11px; color:var(--sahara-text-muted); display:flex; justify-content:space-between;">
-        <span>Source: ${item.officialSource || 'Govt of India'}</span>
-        <span>Verified: ${item.lastVerified || '2026-03-01'}</span>
+        <span>${i18n.t('officialSource')}: ${item.officialSource || 'Govt of India'}</span>
+        <span>${i18n.t('lastVerified')}: ${item.lastVerified || '2026-03-01'}</span>
       </div>
     `;
 
     this.openModal(modal);
-    this.speech.speak(`Here is your application kit for ${item.name}.`);
+    const spokenIntro = i18n.format('kitIntroAudio', { name: localizedName });
+    this.speech.speak(spokenIntro);
   }
 
   /* =========================================================================
@@ -1015,8 +1101,12 @@ class SaharaApp {
     registerModalSpeaker('kit-modal-speaker-btn', () => {
       if (!this.activeService) return 'No service details selected.';
       const s = this.activeService;
+      const localizedName = i18n.localize(s, 'name');
       const docs = (s.documents || []).map(d => d.name).join(', ');
-      return `Application Kit for ${s.name}. Issued by ${s.officialSource || 'Government of India'}. Required documents are: ${docs}. Eligibility: ${s.eligibility ? s.eligibility.criteria : 'Standard criteria apply'}. Processing timeline is ${s.processingTimeline || '15 to 30 days'}.`;
+      if (i18n.getCurrentLanguage() === 'hi') {
+        return `${localizedName} के लिए आवेदन किट। जारीकर्ता: ${s.officialSource || 'भारत सरकार'}। आवश्यक दस्तावेज़ हैं: ${docs}। समय सीमा: ${s.processingTimeline || '7 से 15 कार्य दिवस'}।`;
+      }
+      return `Application Kit for ${localizedName}. Issued by ${s.officialSource || 'Government of India'}. Required documents are: ${docs}. Eligibility: ${s.eligibility ? s.eligibility.criteria : 'Standard criteria apply'}. Processing timeline is ${s.processingTimeline || '7 to 15 working days'}.`;
     });
 
     registerModalSpeaker('vault-modal-speaker-btn', () => {

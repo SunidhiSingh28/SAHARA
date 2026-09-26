@@ -57,6 +57,17 @@ export class SmartQuestionEngine {
         }
       }
 
+      if (q.id === 'aadhaar_status') {
+        if (extractedContext.intentType === 'replacement' || extractedContext.documentLost) {
+          answers[q.id] = 'replacement';
+          continue;
+        }
+        if (extractedContext.intentType === 'correction') {
+          answers[q.id] = 'correction';
+          continue;
+        }
+      }
+
       if (q.id === 'voter_age_confirm') {
         if (extractedContext.ageKnown && extractedContext.isAbove18 !== null) {
           answers[q.id] = extractedContext.isAbove18 ? 'yes' : 'no';

@@ -4,6 +4,22 @@
  */
 
 export const OFFICES_DATA = {
+  'aadhaar-card': {
+    officeName: 'Aadhaar Seva Kendra (UIDAI) / Head Post Office Enrolment Center',
+    department: 'Unique Identification Authority of India (UIDAI), Ministry of Electronics & IT',
+    address: 'Central Post Office Building, General Post Office (GPO), Fort, Mumbai 400001 (or local nearest ASK)',
+    timings: 'Monday to Saturday: 9:30 AM - 5:30 PM (Sunday Closed)',
+    helpline: '1947 (Toll-Free 24x7 UIDAI)',
+    appointmentRequired: false,
+    documentsToCarry: [
+      'Original Proof of Identity (PoI) (Passport / PAN / Voter ID / Ration Card)',
+      'Original Proof of Address (PoA) (Electricity Bill / Water Bill / Passbook / Rent Agreement)',
+      'Original Date of Birth proof (Birth certificate or 10th marksheet)',
+      'Online appointment confirmation slip (if booked on myaadhaar.uidai.gov.in)'
+    ],
+    officialWebsite: 'https://myaadhaar.uidai.gov.in',
+    mapsQuery: 'Aadhaar Seva Kendra'
+  },
   'voter-id': {
     officeName: 'District Election Office / Electoral Registration Office (ERO)',
     department: 'Election Commission of India / State Election Branch',

@@ -5,6 +5,118 @@
 
 export const SERVICES_DATA = [
   {
+    id: 'aadhaar-card',
+    name: 'Aadhaar Card (UIDAI Unique Identification Authority of India)',
+    name_hi: 'आधार कार्ड (UIDAI)',
+    name_mr: 'आधार कार्ड (UIDAI)',
+    name_bn: 'আধার কার্ড (UIDAI)',
+    name_ta: 'ஆதார் அட்டை (UIDAI)',
+    name_te: 'ఆధార్ కార్డు (UIDAI)',
+    name_gu: 'આધાર કાર્ડ (UIDAI)',
+    name_pa: 'ਆਧਾਰ ਕਾਰਡ (UIDAI)',
+    type: 'service',
+    category: 'cat-identity',
+    description: '12-digit unique citizen identification number issued by UIDAI, serving as statutory proof of identity and address across India.',
+    description_hi: 'यूआईडीएआई (UIDAI) द्वारा जारी 12-अंकों का विशिष्ट पहचान क्रमांक, जो पूरे भारत में पहचान एवं पते का वैधानिक प्रमाण है।',
+    keywords: [
+      'aadhaar', 'aadhar', 'adhar', 'uidai', 'uid', 'eaadhaar', 'e-aadhaar', 'adhar card', 
+      'aadhar card', 'aadhaar card', 'my aadhaar', 'myaadhaar', 'biometric', 'update aadhaar',
+      'aadhaar enrollment', 'aadhaar enrolment', 'aadhaar card download', 'duplicate aadhaar',
+      'lost aadhaar', 'aadhaar mobile link', 'aadhaar address update', 'आधार', 'आधार कार्ड'
+    ],
+    aliases: ['Aadhaar Card', 'UIDAI', 'Aadhar Card', 'e-Aadhaar', 'UID', 'Adhar Card', 'आधार कार्ड', 'आधार'],
+    exampleQueries: [
+      'I want to apply for Aadhaar card',
+      'Aadhar card update',
+      'Aadhaar lost duplicate download',
+      'Aadhar enrollment',
+      'Update phone number in Aadhaar',
+      'aadhar',
+      'aadhaar',
+      'adhar',
+      'aadhar card',
+      'aadhaar card',
+      'mujhe aadhar banana hai',
+      'आधार कार्ड'
+    ],
+    lifeEvents: ['baby-born', 'turned-18', 'moved-city', 'lost-doc'],
+    stateApplicability: 'All States & Union Territories (UIDAI - Govt of India)',
+    eligibility: {
+      criteria: 'Any individual residing in India for 182 days or more in the preceding 12 months, of any age (including newborns).',
+      verificationNote: 'Requires biometric capture (fingerprints, iris scan, facial photograph) at an authorized Aadhaar Seva Kendra / Enrolment Center.'
+    },
+    questions: [
+      {
+        id: 'aadhaar_status',
+        question: 'Do you already possess an Aadhaar number?',
+        options: [
+          { label: 'No, this is a fresh enrolment', value: 'new' },
+          { label: 'Yes, need mobile / address / biometric update', value: 'correction' },
+          { label: 'Yes, but lost card / need reprint & download', value: 'replacement' }
+        ]
+      }
+    ],
+    documents: [
+      {
+        id: 'doc-poi',
+        name: 'Proof of Identity (PoI) (Passport / PAN / Voter ID / Ration Card / School ID)',
+        reason: 'Mandatory statutory verification of legal name and photograph',
+        mandatory: true,
+        originalRequired: true,
+        matchKey: 'PAN Card'
+      },
+      {
+        id: 'doc-poa',
+        name: 'Proof of Address (PoA) (Electricity Bill / Water Bill / Bank Passbook / Rent Agreement)',
+        reason: 'Statutory verification of resident address for Aadhaar postal delivery',
+        mandatory: true,
+        originalRequired: true,
+        matchKey: 'Address Proof (Electricity Bill)'
+      },
+      {
+        id: 'doc-dob',
+        name: 'Date of Birth (DoB) Proof (Birth Certificate / 10th Marksheet / Passport)',
+        reason: 'Mandatory verification to establish verified date of birth',
+        mandatory: true,
+        originalRequired: true,
+        matchKey: 'Birth Certificate'
+      }
+    ],
+    forms: [
+      {
+        formNumber: 'Aadhaar Enrolment / Update Form',
+        title: 'UIDAI Aadhaar Enrolment & Correction Application Form',
+        officialUrl: 'https://myaadhaar.uidai.gov.in',
+        printablePdf: 'assets/forms/aadhaar_enrolment_form.pdf'
+      }
+    ],
+    filledDemo: {
+      title: 'Aadhaar Enrolment / Update Demo Application',
+      disclaimer: 'DEMO ONLY — This example uses fictional information and must not be submitted as an actual application.',
+      fields: [
+        { label: 'Enrolment Type', value: 'Fresh Enrolment / Update', tip: 'Select Enrolment or Update' },
+        { label: 'Resident Status', value: 'Resident Indian', tip: 'Must be residing in India >= 182 days' },
+        { label: 'Full Legal Name', value: 'Sunidhi Sharma', tip: 'Matches Proof of Identity exactly' },
+        { label: 'Gender & DOB', value: 'Female • 15/08/2004 (Verified)', tip: 'Requires supporting DoB proof' },
+        { label: 'Address', value: 'Flat 302, Green Meadows, MG Road, Pune, Maharashtra - 411001', tip: 'Current residential address' },
+        { label: 'Mobile Number', value: '+91 98765 XXXXX', tip: 'Mandatory for OTP and mAadhaar access' }
+      ]
+    },
+    tutorial: [
+      { step: 1, title: 'Locate Aadhaar Seva Kendra', desc: 'Visit myaadhaar.uidai.gov.in and book an appointment at your nearest Aadhaar Seva Kendra or post office.' },
+      { step: 2, title: 'Prepare Original Documents', desc: 'Gather original Proof of Identity (PoI), Proof of Address (PoA), and Date of Birth proof.' },
+      { step: 3, title: 'Visit Center & Biometric Capture', desc: 'Attend your appointment for live photograph, 10-fingerprint scan, and iris capture.' },
+      { step: 4, title: 'Collect Enrolment Slip (EID)', desc: 'Receive the 28-digit Enrolment ID acknowledgement slip for real-time status tracking.' },
+      { step: 5, title: 'Download e-Aadhaar & Speed Post', desc: 'Upon verification within 7-15 days, download your password-protected e-Aadhaar online; physical PVC card is dispatched by India Post.' }
+    ],
+    officialSource: 'UIDAI (Unique Identification Authority of India)',
+    processingTimeline: '7 - 15 working days',
+    physicalVisitRequired: true,
+    physicalVisitDesc: 'One-time physical biometric capture required at nearest Aadhaar Seva Kendra / authorized Post Office or Bank branch.',
+    helpline: '1947 (UIDAI Toll-Free 24x7) • help@uidai.gov.in',
+    lastVerified: '2026-03-01'
+  },
+  {
     id: 'voter-id',
     name: 'Voter ID (Electors Photo Identity Card - EPIC)',
     type: 'service',
@@ -413,15 +525,39 @@ export const SERVICES_DATA = [
   {
     id: 'driving-licence',
     name: 'Learner’s & Driving Licence (Sarathi Parivahan)',
+    name_hi: 'ड्राइविंग लाइसेंस (सारथी परिवहन)',
+    name_mr: 'वाहन चालक परवाना (सारथी परिवहन)',
+    name_bn: 'ড্রাইভিং লাইসেন্স (সারথী পরিবহন)',
+    name_ta: 'ஓட்டுநர் உரிமம் (சாரதி பரிவாகன்)',
+    name_te: 'డ్రైవింగ్ లైసెన్స్ (సారథి పరివాహన్)',
+    name_gu: 'ડ્રાઇવિંગ લાઇસન્સ (સારથી પરિવહન)',
+    name_pa: 'ਡਰਾਈਵਿੰਗ ਲਾਇਸੈਂਸ (ਸਾਰਥੀ ਪਰਿਵਾਹਨ)',
     type: 'service',
     category: 'cat-travel',
     description: 'Official authorization to drive motor vehicles in India, managed through Ministry of Road Transport and Highways (MoRTH).',
-    keywords: ['driving licence', 'dl', 'learner licence', 'll', 'bike', 'car', 'rto', 'sarathi', 'driving license'],
-    aliases: ['Driving License', 'Sarathi DL', 'Learners Licence'],
+    description_hi: 'सड़क परिवहन एवं राजमार्ग मंत्रालय (MoRTH) द्वारा भारत में मोटर वाहन चलाने हेतु अधिकृत लाइसेंस।',
+    keywords: [
+      'license', 'licence', 'driving licence', 'driving license', 'dl', 'learner licence', 
+      'learner license', 'll', 'bike', 'car', 'rto', 'sarathi', 'parivahan', 'driver license',
+      'driver licence', 'driving', 'vehicle license', 'permanent dl', 'renew license', 
+      'लाइसेंस', 'ड्राइविंग लाइसेंस', 'गाड़ी का लाइसेंस'
+    ],
+    aliases: [
+      'Driving License', 'Driving Licence', 'License', 'Licence', 'Sarathi DL', 
+      'Learners Licence', 'Learner License', 'Driver License', 'DL', 'लाइसेंस'
+    ],
     exampleQueries: [
+      'license',
+      'licence',
+      'driving license',
+      'driving licence',
       'I want to make a driving license',
       'I turned 18 and want to ride a bike',
-      'Learner license online apply'
+      'Learner license online apply',
+      'driving',
+      'dl apply online',
+      'license chahiye',
+      'लाइसेंस'
     ],
     lifeEvents: ['turned-18', 'bought-vehicle'],
     stateApplicability: 'State Transport Departments / Sarathi Parivahan',

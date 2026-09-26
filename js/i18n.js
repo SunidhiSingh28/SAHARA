@@ -59,7 +59,12 @@ const TRANSLATIONS = {
     officialSource: 'Official Source',
     lastVerified: 'Last Verified',
     beyondTimelineWarning: 'This application may be beyond the published processing timeline.',
-    officialGrievanceRoutes: 'Official Escalation & Grievance Routes'
+    officialGrievanceRoutes: 'Official Escalation & Grievance Routes',
+    whatSaharaUnderstood: 'What Sahara Understood',
+    eligibilityTitle: 'Eligibility Criteria',
+    kitIntroAudio: 'Here is your application kit for {name}.',
+    understandingService: 'What Sahara understood: You are looking to apply for {name}.',
+    understandingScheme: 'What Sahara understood: You are looking for relevant welfare schemes.'
   },
   hi: {
     heroTitle: 'आप क्या करना चाहते हैं?',
@@ -97,7 +102,12 @@ const TRANSLATIONS = {
     officialSource: 'आधिकारिक स्रोत',
     lastVerified: 'अंतिम सत्यापन',
     beyondTimelineWarning: 'यह आवेदन आधिकारिक प्रकाशित समय सीमा से अधिक समय से लंबित है।',
-    officialGrievanceRoutes: 'आधिकारिक शिकायत एवं निवारण माध्यम'
+    officialGrievanceRoutes: 'आधिकारिक शिकायत एवं निवारण माध्यम',
+    whatSaharaUnderstood: 'सहारा की समझ',
+    eligibilityTitle: 'पात्रता मानदंड',
+    kitIntroAudio: '{name} के लिए आपका आवेदन किट यहाँ तैयार है।',
+    understandingService: 'सहारा की समझ: आप {name} के लिए आवेदन करना चाहते हैं।',
+    understandingScheme: 'सहारा की समझ: आप प्रासंगिक सरकारी कल्याणकारी योजनाओं की खोज कर रहे हैं।'
   },
   mr: {
     heroTitle: 'तुम्हाला काय करायचे आहे?',
@@ -135,7 +145,12 @@ const TRANSLATIONS = {
     officialSource: 'अधिकृत स्रोत',
     lastVerified: 'शेवटची पडताळणी',
     beyondTimelineWarning: 'हा अर्ज अधिकृत दिलेल्या कालावधीपेक्षा जास्त प्रलंबित असू शकतो.',
-    officialGrievanceRoutes: 'अधिकृत तक्रार निवारण मार्ग'
+    officialGrievanceRoutes: 'अधिकृत तक्रार निवारण मार्ग',
+    whatSaharaUnderstood: 'सहाराचे आकलन',
+    eligibilityTitle: 'पात्रता निकष',
+    kitIntroAudio: '{name} साठी तुमचा अर्ज किट येथे तयार आहे.',
+    understandingService: 'सहाराचे आकलन: तुम्ही {name} साठी अर्ज करू इच्छिता.',
+    understandingScheme: 'सहाराचे आकलन: तुम्ही संबंधित सरकारी कल्याणकारी योजना शोधत आहात.'
   },
   bn: {
     heroTitle: 'আপনি কী করতে চান?',
@@ -239,6 +254,21 @@ export const i18n = {
   t(key) {
     const dict = TRANSLATIONS[currentLangCode] || TRANSLATIONS.en;
     return dict[key] || TRANSLATIONS.en[key] || key;
+  },
+
+  format(key, params = {}) {
+    let str = this.t(key);
+    for (const [k, v] of Object.entries(params)) {
+      str = str.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+    }
+    return str;
+  },
+
+  localize(item, field = 'name') {
+    if (!item) return '';
+    const localizedKey = `${field}_${currentLangCode}`;
+    if (item[localizedKey]) return item[localizedKey];
+    return item[field] || '';
   },
 
   getAllLanguages() {
